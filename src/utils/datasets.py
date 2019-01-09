@@ -125,8 +125,9 @@ class DataManager(object):
             image_array = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
             image_array = cv2.resize(image_array, (y_size, x_size))
             faces[file_arg] = image_array
-            file_basename = os.path.basename(file_path)
-            file_emotion = file_basename[4:6]
+
+            emotion_index = file_path.find('.') + 1
+            file_emotion = file_path[emotion_index:emotion_index + 2]
             # there are two file names in the dataset
             # that don't match the given classes
             try:
