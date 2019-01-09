@@ -42,7 +42,7 @@ model.compile(optimizer='adam', loss='categorical_crossentropy',
 model.summary()
 
 
-datasets = ['jaffe']
+datasets = ['fer2013']
 for dataset_name in datasets:
     print('Training dataset:', dataset_name)
 
@@ -54,7 +54,7 @@ for dataset_name in datasets:
                                   patience=int(patience/4), verbose=1)
     trained_models_path = base_path + dataset_name + '_mini_XCEPTION'
     model_names = trained_models_path + '.{epoch:02d}-{val_acc:.2f}.hdf5'
-    model_checkpoint = ModelCheckpoint(model_names, 'val_loss', verbose=1,
+    model_checkpoint = ModelCheckpoint(model_names, 'val_acc', verbose=1,
                                                     save_best_only=True)
     callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr]
 
