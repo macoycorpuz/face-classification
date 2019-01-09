@@ -23,6 +23,8 @@ class DataManager(object):
             self.dataset_path = '../datasets/fer2013/fer2013.csv'
         elif self.dataset_name == 'KDEF':
             self.dataset_path = '../datasets/KDEF/'
+        elif self.dataset_name == 'jaffe':
+            self.dataset_path = '../datasets/jaffe/'
         else:
             raise Exception(
                     'Incorrect dataset name, please input imdb or fer2013')
@@ -34,6 +36,8 @@ class DataManager(object):
             ground_truth_data = self._load_fer2013()
         elif self.dataset_name == 'KDEF':
             ground_truth_data = self._load_KDEF()
+        elif self.dataset_name == 'jaffe':
+            ground_truth_data = self._load_jaffe()
         return ground_truth_data
 
     def _load_imdb(self):
@@ -101,6 +105,38 @@ class DataManager(object):
         faces = np.expand_dims(faces, -1)
         return faces, emotions
 
+    def _load_jaffe(self):
+        #emotion map
+        class_to_arg = get_class_to_arg(self.dataset_name)
+        #num of emotion
+        num_classes = len(class_to_arg)
+
+        file_paths = []
+        for folder, subfolders, filenames in os.walk(self.dataset_path, topdown=False):
+            for filename in filenames:
+                if filename.lower().endswith(('.tiff')):
+                    file_paths.append(os.path.join(folder, filename))
+
+        num_faces = len(file_paths)
+        y_size, x_size = self.image_size
+        faces = np.zeros(shape=(num_faces, y_size, x_size))
+        emotions = np.zeros(shape=(num_faces, num_classes))
+        for file_arg, file_path in enumerate(file_paths):
+            image_array = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+            image_array = cv2.resize(image_array, (y_size, x_size))
+            faces[file_arg] = image_array
+            file_basename = os.path.basename(file_path)
+            file_emotion = file_basename[4:6]
+            # there are two file names in the dataset
+            # that don't match the given classes
+            try:
+                emotion_arg = class_to_arg[file_emotion]
+            except:
+                continue
+            emotions[file_arg, emotion_arg] = 1
+        faces = np.expand_dims(faces, -1)
+        return faces, emotions
+
 
 def get_labels(dataset_name):
     if dataset_name == 'fer2013':
@@ -110,6 +146,8 @@ def get_labels(dataset_name):
         return {0: 'woman', 1: 'man'}
     elif dataset_name == 'KDEF':
         return {0: 'AN', 1: 'DI', 2: 'AF', 3: 'HA', 4: 'SA', 5: 'SU', 6: 'NE'}
+    elif dataset_name == 'jaffe':
+        return {0: 'AN', 1: 'DI', 2: 'FE', 3: 'HA', 4: 'SA', 5: 'SU', 6: 'NE'}
     else:
         raise Exception('Invalid dataset name')
 
@@ -122,6 +160,8 @@ def get_class_to_arg(dataset_name='fer2013'):
         return {'woman': 0, 'man': 1}
     elif dataset_name == 'KDEF':
         return {'AN': 0, 'DI': 1, 'AF': 2, 'HA': 3, 'SA': 4, 'SU': 5, 'NE': 6}
+    elif dataset_name == 'jaffe':
+        return {'AN': 0, 'DI': 1, 'FE': 2, 'HA': 3, 'SA': 4, 'SU': 5, 'NE': 6}
     else:
         raise Exception('Invalid dataset name')
 
